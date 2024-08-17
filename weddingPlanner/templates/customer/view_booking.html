@@ -1,0 +1,319 @@
+{% extends "customer/layout.html" %}
+
+{% set title = "Wedding Planner" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="nav-item">
+                <a href="#recent" class="nav-link active" data-bs-toggle="tab">Recent Bookings</a>
+            </li>
+            <li class="nav-item">
+                <a href="#payment_requested" class="nav-link" data-bs-toggle="tab">Payment Requests</a>
+            </li>
+            <li class="nav-item">
+                <a href="#confirmed" class="nav-link" data-bs-toggle="tab">Confirmed</a>
+            </li>
+            <li class="nav-item">
+                <a href="#completed" class="nav-link" data-bs-toggle="tab">Completed</a>
+            </li>
+            <li class="nav-item">
+                <a href="#pending" class="nav-link" data-bs-toggle="tab">Pending</a>
+            </li>
+            <li class="nav-item">
+                <a href="#cancelled" class="nav-link" data-bs-toggle="tab">Cancelled</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="recent">
+                <h4 class="mt-4">All Bookings</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <th scope="row">{{ loop.index }}</th>
+                            <td>{{ booking.profile.get_vendor().name }}
+                                <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                            </td>
+                            <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                            <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                            <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'completed' %}bg-primary{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'payment requested' %}bg-info{% endif %}">{{ booking.status }}</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="payment_requested">
+                <h4 class="mt-4">Payment Requests</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                        <th scope="col">Payment</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% if booking.status == 'payment requested' %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ booking.profile.get_vendor().name }}
+                                    <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                                </td>
+                                <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                                <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                                <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                                <td>{{ booking.get_total_price() }}</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm fw-bold text-white" data-bs-toggle="modal"
+                                       href="#paymentModal" id="paymentModalBtn"
+                                       data-booking-id="{{ booking.id }}">Pay</a>
+                                    <a href="{{ url_for('customer.cancel_booking', booking_id=booking.id) }}"
+                                       class="btn btn-danger btn-sm">Cancel</a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="confirmed">
+                <h4 class="mt-4">Confirmed Bookings</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% if booking.status == 'confirmed' %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ booking.profile.get_vendor().name }}
+                                    <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                                </td>
+                                <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                                <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                                <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                                <td>
+                                    {% if booking.profile.refund_policy %}
+                                        <a href="{{ url_for('customer.cancel_booking', booking_id=booking.id) }}"
+                                           class="btn btn-danger btn-sm">Refund</a>
+                                    {% else %}
+                                        <span class="badge bg-info">Non-refundable</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="completed">
+                <h4 class="mt-4">Completed Bookings</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% if booking.status == 'completed' %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ booking.profile.get_vendor().name }}
+                                    <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                                </td>
+                                <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                                <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                                <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="pending">
+                <h4 class="mt-4">Pending Bookings</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% if booking.status == 'pending' %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ booking.profile.get_vendor().name }}
+                                    <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                                </td>
+                                <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                                <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                                <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                                <td>
+                                    <a href="{{ url_for("customer.cancel_booking", booking_id=booking.id) }}"
+                                       class="btn btn-danger btn-sm">Cancel</a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="cancelled">
+                <h4 class="mt-4">Cancelled Bookings</h4>
+                <table class="table table-striped bg-white">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Vendor</th>
+                        <th scope="col">Event Date</th>
+                        <th scope="col">Event Time</th>
+                        <th scope="col">Booking Time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% if booking.status == 'cancelled' %}
+                            <tr>
+                                <th scope="row">{{ loop.index }}</th>
+                                <td>{{ booking.profile.get_vendor().name }}
+                                    <small class="d-block fw-bold">{{ booking.profile.get_vendor_type().capitalize() }}</small>
+                                </td>
+                                <td>{{ booking.event_date.strftime("%b, %d %y") }}</td>
+                                <td>{{ booking.event_time.strftime("%I:%M %p") }}</td>
+                                <td>{{ booking.booking_date.strftime("%b, %d %y %I:%M %p") }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block modal %}
+    <div class="modal fade" id="paymentModal" aria-hidden="true" aria-labelledby="paymentModalLabel"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Pay Vendor!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form role="form" method="post" action="" id="form">
+                    <div class="modal-body">
+                        <p id="paymentDesc">Pay for the following vendor!</p>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card ">
+                                    <div class="card-header">
+                                        <!-- Credit card form content -->
+                                        <div class="tab-content">
+                                            <!-- credit card info-->
+                                            <div id="credit-card" class="tab-pane fade show active pt-3">
+                                                <div class="form-group"><label for="username">
+                                                    <h6>Card Owner</h6>
+                                                </label> <input type="text" name="username"
+                                                                placeholder="Card Owner Name" required
+                                                                class="form-control "></div>
+                                                <div class="form-group"><label for="cardNumber">
+                                                    <h6>Card number</h6>
+                                                </label>
+                                                    <div class="input-group"><input type="text" name="cardNumber"
+                                                                                    placeholder="Valid card number"
+                                                                                    class="form-control " required>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-8">
+                                                        <div class="form-group"><label><span class="hidden-xs">
+                                                    <h6>Expiration Date</h6>
+                                                </span></label>
+                                                            <div class="input-group"><input type="number"
+                                                                                            placeholder="MM" name=""
+                                                                                            class="form-control"
+                                                                                            required> <input
+                                                                    type="number" placeholder="YY" name=""
+                                                                    class="form-control" required></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group mb-4"><label data-toggle="tooltip"
+                                                                                            title="Three digit CV code on the back of your card">
+                                                            <h6>CVV <i class="fa fa-question-circle d-inline"></i></h6>
+                                                        </label> <input type="text" required class="form-control"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div> <!-- End -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" data-bs-toggle="modal">Confirm Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('#paymentModalBtn').on('click', function () {
+            var tableRows = $(this).parent().siblings();
+            var venueName = tableRows.eq(1).text();
+            var packagePrice = tableRows.eq(5).text()
+            var bookingId = this.dataset.bookingId
+
+            $('#paymentDesc').html(
+                `Pay <b>${venueName}</b> for <b>${packagePrice}</b>!`
+            )
+
+            console.log(bookingId)
+
+            $('#form').attr('action', `/customer/booking/pay/${bookingId}`)
+        })
+    </script>
+{% endblock %}

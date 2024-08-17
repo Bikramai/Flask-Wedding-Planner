@@ -1,0 +1,71 @@
+{% extends "vendor/layout.html" %}
+
+{% set title = "View Booking" %}
+
+{% block content %}
+    <div class="container my-4">
+        <h3>Booking Details</h3>
+        <div class="bg-white rounded border p-3">
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <b class="text-muted">Booking For</b>
+                    <h4 class="fw-bold">{{ booking.event_name }}</h4>
+                </div>
+                <div class="col-md-4">
+                    <b class="text-muted">Event Date / Time</b>
+                    <h4 class="fw-bold">{{ booking.event_date.strftime("%b, %d %Y") }} {{ booking.event_time.strftime("%I:%M %p") }}</h4>
+                </div>
+                <div class="col-md-4">
+                    <b class="text-muted d-block ">Booking Status</b>
+                    <h5 class="d-inline-block badge p-2 {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'completed' %}bg-primary{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% endif %}">{{ booking.status.capitalize() }}</h5>
+                </div>
+                <div class="col-md-4">
+                    <b class="text-muted">Booking Description</b>
+                    <p>{{ booking.description if booking.description else 'No Description Provided' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <b class="text-muted d-block">Customer Email</b>
+                    <a class="link-primary fw-bold"
+                       href="mailto:{{ booking.booking_by.email }}">{{ booking.booking_by.email }}</a>
+                </div>
+                {% if current_user.profile.service.service == "catering" %}
+                    <div class="col-md-4">
+                        <b class="text-muted d-block">No Of Guests</b>
+                        <h4 class="fw-bold">{{ booking.guests }}</h4>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if booking.package %}
+                <div class="row mb-3">
+                    <h5 class="text-muted">Selected Package</h5>
+                    <div class="row">
+                        <div class="col-12 col-md-4">
+                            <div class="p-3 border rounded rounded-3">
+                                <h6>{{ booking.package.name }}</h6>
+                                <p>{{ booking.package.description }}</p>
+                                <div class="d-flex gap-1">
+                                    <span>$</span><span class="fs-3">{{ booking.package.price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div>
+                <h6 class="fw-bold">Respond To Request</h6>
+                {% if booking.status == 'pending' %}
+                    <a href="{{ url_for('vendor.dashboard.accept_booking', booking_id=booking.id) }}"
+                       class="btn btn-primary">Accept and Request Payment</a>
+                    <a href="{{ url_for('vendor.dashboard.cancel_booking', booking_id=booking.id) }}"
+                       class="btn btn-danger">Cancel Booking</a>
+                {% elif booking.status == 'payment requested' %}
+                    <p>You have made the payment request!</p>
+                {% elif booking.status == 'confirmed' %}
+                    <a href="{{ url_for('vendor.dashboard.complete_booking', booking_id=booking.id) }}"
+                       class="btn btn-primary">Complete Booking</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

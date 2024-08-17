@@ -1,0 +1,28 @@
+{% if current_user.profile %}
+    {% extends "vendor/layout.html" %}
+{% else %}
+    {% extends "customer/layout.html" %}
+{% endif %}
+
+{% set title = "Chat" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h3 class="mb-0">Chats</h3>
+        <small class="text-muted">Manage your chats here!</small>
+
+        <div class="row p-3 my-3 border rounded bg-white">
+            <h6>Previous Chats!</h6>
+            <div class="row">
+                {% for chat in chats %}
+                    <div class="col-md-3">
+                        <div class="bg-light p-3 border rounded">
+                            <h6 class="text-muted">Continue Chatting With</h6>
+                            <a href="{{ url_for('chat.start_chat', start_with=chat.customer_id if current_user.is_vendor() else chat.vendor_id) }}">{{ chat.get_receiver_title() }}</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

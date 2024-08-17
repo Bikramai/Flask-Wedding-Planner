@@ -1,0 +1,78 @@
+{% if current_user.profile %}
+    {% extends "vendor/layout.html" %}
+{% else %}
+    {% extends "customer/layout.html" %}
+{% endif %}
+
+{% set title = "Chat" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h3>Chatting
+            with {{ receiver_account.profile.get_vendor().name if receiver_account.profile else receiver_account.email }}</h3>
+        <div style="height: 500px" class="bg-white p-3 border rounded mt-4 d-flex flex-column gap-3">
+            <div style="overflow-y: scroll" class="h-100 d-flex flex-column gap-2 px-3" id="messageContainer">
+                {% for message in all_messages %}
+                    <div class="border-bottom p-2 {{ "bg-primary text-white" if message.is_sender_vendor() }}">{{ message.message }}</div>
+                {% endfor %}
+            </div>
+            <div class="row border-top pt-2">
+                <div class="col-10">
+                    <textarea style="resize: none" class="form-control w-100" id="messageWriter"
+                              placeholder="Enter your message here..." rows="2"></textarea>
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-primary w-100 h-100 disabled" id="sendMessage">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+
+            let sendButton = $("#sendMessage");
+            let messageWriter = $("#messageWriter");
+            let messageContainer = $("#messageContainer");
+
+            const add_message = (message) => {
+
+                messageContainer.append(
+                    `<div class="border-bottom rounded p-2 {{ "bg-primary text-white" if current_user.is_vendor() }}">${message}</div>`
+                )
+            }
+
+            messageWriter.on("change", function () {
+                if ($(this).val().length > 0) {
+                    sendButton.prop("disabled", false);
+                    sendButton.removeClass("disabled");
+                } else {
+                    sendButton.prop("disabled", true);
+                    sendButton.addClass("disabled");
+                }
+            });
+
+            sendButton.click(function () {
+                if (messageWriter.val().length < 1) {
+                    return;
+                }
+
+                $.ajax({
+                        type: "POST",
+                        url: "{{ url_for('chat.send_message') }}",
+                        data: {
+                            message: messageWriter.val(),
+                            receiver_id: "{{ receiver_account.id }}"
+                        },
+                        success: function (data) {
+                            add_message(data.message);
+                            messageWriter.val("");
+                        }
+                    }
+                )
+            })
+        })
+    </script>
+{% endblock %}

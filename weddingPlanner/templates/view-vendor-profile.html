@@ -1,0 +1,219 @@
+{% extends "customer/layout.html" %}
+
+{% set title = "Wedding Planner" %}
+
+{% block content %}
+
+    {% if not current_user.is_authenticated %}
+        <div class="alert alert-warning">
+            Please <a href="{{ url_for('auth.login') }}">Login</a> or <a
+                href="{{ url_for('auth.register') }}">Register</a> to
+            book with your favorite vendors
+        </div>
+    {% endif %}
+
+    <div class="container mt-4">
+        <div id="vendorCarousel" class="carousel slide carousel-dark" data-bs-ride="carousel">
+            <div style="height: 500px" class="carousel-inner rounded border bg-white">
+                {% for image in vendor.images %}
+                    <div class="carousel-item {{ 'active' if loop.index0 == 0 }} h-100 ">
+                        <img src="{{ url_for('static', filename='uploads/' + image) }}" class="d-block mx-auto h-100"
+                             alt="...">
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev text-dark" type="button" data-bs-target="#vendorCarousel"
+                    data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next text-dark" type="button" data-bs-target="#vendorCarousel"
+                    data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        <div class="bg-white border rounded py-4 px-5 my-4">
+            <div class="d-flex flex-wrap justify-content-between">
+                <div class="flex-grow-1">
+                    <h2 class="my-2">{{ vendor.name }}</h2>
+                    <p style="white-space: pre-line">{{ vendor.description }}</p>
+
+                    <div class="row mt-5">
+                        <div class="col-12 col-md-4 border-start border-2 px-4">
+                            <h6 class="text-muted">Price</h6>
+                            <p class="m-0">{{ vendor.get_price() }}</p>
+                        </div>
+
+                        {% if vendor.profile.service.service == 'venue' %}
+                            <div class="col-12 col-md-4 border-start border-2 px-4">
+                                <h6 class="text-muted">No of Guests</h6>
+                                <p class="m-0">{{ vendor.number_of_guests }} Person</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if vendor.menu %}
+                        <div class="row mt-5">
+                            <h5 class="text-muted">Our Packages</h5>
+                            <div class="row">
+                                {% for package in vendor.menu %}
+                                    <div class="col-12 col-md-4">
+                                        <div class="{{ 'bg-light' if loop.index0 % 2 == 1 }} p-3 border rounded rounded-3">
+                                            <h6>{{ package.name }}</h6>
+                                            <p>{{ package.description }}</p>
+                                            <div class="d-flex gap-1">
+                                                <span>$</span><span class="fs-3">{{ package.price }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-5">
+                        <h5 class="text-muted">See Vendor Schedule</h5>
+                        <div class="calender bg-white rounded border overflow-hidden">
+                            <div class="my-3 d-flex justify-content-between align-items-center px-5">
+                                <a href="{{ url_for('customer.view_vendor_profile', month=selected_month-1, profile_id=vendor.profile.id) }}"
+                                   class="link-primary">Previous
+                                    Month</a>
+                                <h3 class="text-center">{{ selected_month_name }}</h3>
+                                <a href="
+
+
+
+
+                                        {{ url_for('customer.view_vendor_profile', month=selected_month+1, profile_id=vendor.profile.id) }}"
+                                   class="link-primary">Next
+                                    Month</a>
+                            </div>
+                            <div class="row bg-light">
+                                <div class="col p-3 text-center fw-bold">Mon</div>
+                                <div class="col p-3 text-center fw-bold">Tue</div>
+                                <div class="col p-3 text-center fw-bold">Wed</div>
+                                <div class="col p-3 text-center fw-bold">Thu</div>
+                                <div class="col p-3 text-center fw-bold">Fri</div>
+                                <div class="col p-3 text-center fw-bold">Sat</div>
+                                <div class="col p-3 text-center fw-bold">Sun</div>
+                            </div>
+                            {% for week in calender %}
+                                <div class="row">
+                                    {% for day in week %}
+                                        <div class="col p-4 text-center">
+                                            {% if day[0] == 0 %}
+                                                <span class="text-muted">&nbsp;</span>
+                                            {% else %}
+                                                {% if day[1] %}
+                                                    {% if day[1] == 'confirmed' %}
+                                                        <span>{{ day[0] }}</span>
+                                                        <b class="d-block text-success">RESERVED</b>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ day[0] }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <h5 class="text-muted">Request a booking!</h5>
+                        {% if current_user.is_authenticated %}
+                            <form class="mt-3" action="{{ url_for('customer.book') }}" method="post">
+                                <input type="hidden" name="profile_id" value="{{ vendor.profile.id }}">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <label class="form-label flex-grow-1 fw-bold">
+                                        Event Name
+                                        <input type="text" class="form-control" name="event_name"
+                                               placeholder="Birthday, Wedding, etc" required>
+                                    </label>
+                                    <label class="form-label flex-grow-1 fw-bold">
+                                        Date of Booking
+                                        <input type="date" class="form-control" name="date" required>
+                                    </label>
+                                    <label class="form-label flex-grow-1 fw-bold">
+                                        Event Start Time
+                                        <input type="time" class="form-control" name="start_time" required>
+                                    </label>
+                                </div>
+                                {% if vendor.menu %}
+                                    <label class="form-label w-50 fw-bold">
+                                        Choose Package
+                                        <select name="package" class="form-select" required>
+                                            {% for package in vendor.menu %}
+                                                <option value="{{ package.id }}">{{ package.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </label>
+                                    {% if vendor.profile.service.service == "catering" %}
+                                        <label class="form-label w-25 fw-bold">
+                                            No of Guests
+                                            <input type="number" class="form-control" name="guests" required>
+                                        </label>
+                                    {% endif %}
+                                {% endif %}
+                                <label class="form-label w-100 fw-bold">
+                                    Description (Optional)
+                                    <textarea class="form-control" name="desc" rows="5"
+                                              placeholder="Any message for us..."></textarea>
+                                </label>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="term" id="term" required>
+                                    <label for="term" class="form-check-label">I agree with terms and conditions</label>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-light mt-3">Reset</button>
+                                    <button type="submit" value="{{ vendor.profile.service.service }}"
+                                            class="btn btn-primary mt-3">Request
+                                    </button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <p class="alert alert-info">Please <a href="{{ url_for('auth.login') }}">Login</a> or <a
+                                    href="{{ url_for('auth.register') }}">Register</a> to book with this vendor</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h5 class="text-muted">Refund Policy</h5>
+                        {% if not vendor.profile.refund_policy %}
+                            <p>This vendor doesn't have a refund policy. Orders are non-refundable.</p>
+                        {% else %}
+                            <div class="row mt-4">
+                                <div class="col-12 col-md-4 border-start border-2 px-4">
+                                    <h6 class="text-muted">Days of Refund</h6>
+                                    <p class="m-0">{{ vendor.profile.refund_policy.days }} Days</p>
+                                </div>
+                                <div class="col border-start border-2 px-4 mt-4 mt-md-0">
+                                    <h6 class="text-muted">Refund Description</h6>
+                                    <p class="m-0">{{ vendor.profile.refund_policy.description }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <h4 class="text-muted">Contact Info</h4>
+                    {% if current_user.is_authenticated %}
+                        <a href="mailto:{{ vendor.contact_email }}" class="d-block my-1">{{ vendor.contact_email }}</a>
+                        <a href="tel:{{ vendor.contact_number }}" class="d-block my-1">{{ vendor.contact_number }}</a>
+                        <span class="d-block my-1">{{ vendor.address }}</span>
+                        <span class="d-block my-1">{{ vendor.city }}</span>
+                    {% else %}
+                        <p class="alert alert-info">
+                            Please <a href="{{ url_for('auth.login') }}">Login</a> or <a
+                                href="{{ url_for('auth.register') }}">Register</a>
+                            to view vendor contact info
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

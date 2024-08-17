@@ -1,0 +1,88 @@
+{% extends "customer/layout.html" %}
+
+{% set title = "Wedding Planner" %}
+
+{% block content %}
+<div class="container my-4">
+    {% if current_user.is_authenticated %}
+        <h3 class="text-muted">Welcome, {{ current_user.email }}!</h3>
+    {% else %}
+        <div class="alert alert-warning">
+            Please <a href="{{ url_for('auth.login') }}">Login</a> or <a href="{{ url_for('auth.register') }}">Register</a> to book with your favorite vendors
+        </div>
+    {% endif %}
+
+    <div class="mt-3 bg-white rounded border p-3">
+        <form>
+            <div class="row align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label w-100 fw-bold">Search By Vendor Name</label>
+                    <input type="text" placeholder="Vendor Name" class="form-control" name="vendor_name"
+                           value="{{ search_params['vendor_name'] }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label w-100 fw-bold">Price Range</label>
+                    <div class="d-flex gap-2">
+                        <input type="number" class="form-control" name="start_price" placeholder="Start Price"
+                               value="{{ search_params['start_price'] }}">
+                        <input type="number" class="form-control" name="end_price" placeholder="End Price"
+                               value="{{ search_params['end_price'] }}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label w-100 fw-bold">Location</label>
+                    <input type="text" class="form-control" name="vendor_location" placeholder="London"
+                           value="{{ search_params['vendor_location'] }}">
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label w-100 fw-bold">Service Type</label>
+                    <select class="form-select" name="service">
+                        <option>All</option>
+                        {% for service in services %}
+                        <option value="{{ service.service }}" {{
+                        'selected' if search_params['service'] == service.service }}>{{ service.service.capitalize()
+                        }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                             class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% for service, vendors in vendors.items() %}
+    <div class="my-3 bg-white rounded border p-3">
+        <div class="d-flex align-items-center gap-2">
+            <h3 class="m-0">{{ service.capitalize() }}</h3> <small class="text-muted fs-5">({{ vendors | length
+            }})</small>
+        </div>
+        <div class="row mt-3">
+            {% for vendor in vendors %}
+            <div class="col-6 col-md-6 col-lg-4 col-xl-3">
+                <div class="card w-100">
+                    <img src="{{ url_for('static', filename='uploads/' + vendor.images[0]) }}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <small class="fw-bold text-muted">{{ vendor.city }}</small>
+                        <h5 class="card-title">{{ vendor.name }}</h5>
+                        <p class="card-text">{{ vendor.description[0:100] }}</p>
+                        <p class="fw-bold text-muted">{{ vendor.get_price() }}</p>
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="{{ url_for("chat.start_chat", start_with=vendor.profile.account_id) }}" class="btn btn-sm btn-primary">Chat Now!</a>
+                            <a href="{{url_for('customer.view_vendor_profile', profile_id=vendor.profile.id)}}" class="btn btn-sm btn-light">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "vendor/layout.html" %}
+
+{% set title = "Dashboard" %}
+
+{% block content %}
+    <div class="container my-4">
+        <h3>Manage Your Bookings!</h3>
+        <p class="text-muted">See your schedule here.</p>
+
+        <div class="calender bg-white rounded border overflow-hidden">
+            <div class="my-3 d-flex justify-content-between align-items-center px-5">
+                <a href="{{ url_for('vendor.dashboard.manage_booking', month=selected_month-1) }}" class="link-primary">Previous
+                    Month</a>
+                <h3 class="text-center">{{ selected_month_name }}</h3>
+                <a href="{{ url_for('vendor.dashboard.manage_booking', month=selected_month+1) }}" class="link-primary">Next
+                    Month</a>
+            </div>
+            <div class="row bg-light">
+                <div class="col p-3 text-center fw-bold">Mon</div>
+                <div class="col p-3 text-center fw-bold">Tue</div>
+                <div class="col p-3 text-center fw-bold">Wed</div>
+                <div class="col p-3 text-center fw-bold">Thu</div>
+                <div class="col p-3 text-center fw-bold">Fri</div>
+                <div class="col p-3 text-center fw-bold">Sat</div>
+                <div class="col p-3 text-center fw-bold">Sun</div>
+            </div>
+            {% for week in calender %}
+                <div class="row">
+                    {% for day in week %}
+                        <div class="col p-4 text-center">
+                            {% if day[0] == 0 %}
+                                <span class="text-muted">&nbsp;</span>
+                            {% else %}
+                                {% if day[1] %}
+                                    {% if day[1] == 'confirmed' %}
+                                        <a class="badge bg-success px-3 py-2"
+                                           href="{{ url_for('vendor.dashboard.view_booking', booking_id=day[2]) }}">
+                                            {{ day[0] }}
+                                        </a>
+                                    {% elif day[1] == 'payment requested' %}
+                                        <a class="badge bg-info px-3 py-2"
+                                           href="{{ url_for('vendor.dashboard.view_booking', booking_id=day[2]) }}">
+                                            {{ day[0] }}
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    {{ day[0] }}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <h3 class="mt-4">Bookings</h3>
+        <p class="text-muted">These are your bookings.</p>
+        <div class="bg-white border rounded p-3">
+            <form>
+                <div class="row align-items-end">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label w-100 fw-bold">Search By Customer Email</label>
+                        <input type="text" class="form-control" name="search_customer_email"
+                               value="{{ search_params['search_customer_email'] }}">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label w-100 fw-bold">Date</label>
+                        <input type="date" class="form-control" name="search_event_date"
+                               value="{{ search_params['search_event_date'] }}">
+                    </div>
+                    <div class="col-8 col-md-2">
+                        <label class="form-label w-100 fw-bold">Status</label>
+                        <select class="form-select" name="search_event_status">
+                            {% for status in bookings_status %}
+                                <option value="{{ status }}" {{ "selected" if status == search_params['search_event_status'] }}>{{ status.capitalize() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4 col-md-1">
+                        <button type="submit" class="btn btn-transparent w-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                 class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <table class="table bg-white my-3 border rounded">
+            <thead class="bg-dark text-white">
+            <tr>
+                <th width="10px">#</th>
+                <th>Customer</th>
+                <th>Event Date Time</th>
+                {% if current_user.profile.get_vendor_type() in ['catering', 'florist'] %}
+                    <th>Plan Choosen</th>
+                {% endif %}
+                <th width="100px">Status</th>
+                <th width="150px">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for booking in bookings %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><a class="text-muted"
+                           href="mailto:{{ booking.booking_by.email }}">{{ booking.booking_by.email }}</a>
+                    <td>{{ booking.event_date.strftime("%b, %d %Y") }} {{ booking.event_time.strftime("%I:%M %p") }}</td>
+                    {% if current_user.profile.get_vendor_type() in ['catering', 'florist'] %}
+                        <td>{{ booking.package.name }}</td>
+                    {% endif %}
+                    <td>
+                        <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'completed' %}bg-primary{% elif booking.status == 'pending' %}bg-warning{% elif booking.status == 'cancelled' %}bg-danger{% elif booking.status == 'payment requested' %}bg-info{% endif %}">{{ booking.status }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('vendor.dashboard.view_booking', booking_id=booking.id) }}"
+                           class="link-primary me-2">View</a>
+                        <a href="{{ url_for('vendor.dashboard.cancel_booking', booking_id=booking.id) }}"
+                           class="link-danger">Cancel</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

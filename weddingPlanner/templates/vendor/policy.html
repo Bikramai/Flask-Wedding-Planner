@@ -1,0 +1,31 @@
+{% extends "vendor/layout.html" %}
+
+{% set title = "Refund Policy" %}
+
+{% block content %}
+    <div class="container my-4">
+        <h3>Refund Policy</h3>
+        <div class="bg-white rounded border p-3">
+            <form action="{{ url_for('vendor.dashboard.policy') }}" method="post">
+                <label class="form-label w-100 fw-bold">
+                    Refund Days
+                    <input type="number" name="days" class="form-control" min="1" placeholder="i.e 3, 5, 7 Days" value="{{ policy.days if policy else '' }}" required>
+                </label>
+                <label class="form-label w-100 fw-bold">
+                    Description
+                    <textarea class="form-control" name="desc" rows="5"
+                              placeholder="Any policy about the refund!">{{ policy.description if policy else '' }}</textarea>
+                </label>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="reset" class="btn btn-light">
+                        Reset
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Set Refund Policy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% set title = "Who are you!" %}
+
+{% block styles %}
+<style>
+    input[type="radio"] + label{
+        cursor: pointer;
+    }
+    input[type="radio"]:checked + label{
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5 justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5 bg-white border rounded p-4">
+            <h3 class="text-center">Select a service you provide!</h3>
+            <form method="post">
+                <div class="border my-4">
+                    {% for service in services %}
+                    <input id="{{ service.service }}" class="d-none" type="radio" name="service"
+                           value="{{ service.service }}">
+                    <label for="{{ service.service }}" class="d-block w-100 px-4 py-3">
+                        <span class="fs-5">{{ service.service.capitalize() }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <input type="submit" class="btn btn-outline-primary btn-lg w-100">
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% if current_user.profile %}
+    {% extends "vendor/layout.html" %}
+{% else %}
+    {% extends "customer/layout.html" %}
+{% endif %}
+
+{% set title = "Todos" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h3 class="mb-0">Todos</h3>
+        <small class="text-muted">Manage your todos here!</small>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="bg-white border rounded p-3">
+                    <h5>Add New Todo</h5>
+                    <form method="post" action="{{ url_for('todo.add') }}">
+                        <label class="form-label w-100 fw-bold">
+                            Todo Title
+                            <input type="text" class="form-control" name="title" required
+                                   placeholder="Find a Good Vendor!">
+                        </label>
+                        <label class="form-label w-100 fw-bold">
+                            Description
+                            <textarea class="form-control" rows="5" name="description"
+                                      placeholder="Description"></textarea>
+                        </label>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="reset" class="btn btn-light mt-3">Reset</button>
+                            <button type="submit" class="btn btn-primary mt-3">Add Todo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-white border rounded p-3">
+                    <h5>Update Todo</h5>
+                    <form method="post" action="{{ url_for('todo.update') }}">
+                        <label class="form-label w-100 fw-bold">
+                            Select Todo to Update
+                            <select class="form-select" name="todo" required>
+                                <option value="">Select Todo</option>
+                                {% for todo in current_user.todo %}
+                                    <option value="{{ todo.id }}">{{ todo.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label class="form-label w-100 fw-bold">
+                            Todo Title
+                            <small class="text-danger fw-normal d-block">Leave Empty to Skip Update</small>
+                            <input type="text" class="form-control" name="title"
+                                   placeholder="Update Todo">
+                        </label>
+                        <label class="form-label w-100 fw-bold">
+                            Description
+                            <small class="text-danger fw-normal d-block">Leave Empty to Skip Update</small>
+                            <textarea class="form-control" rows="5" name="description"
+                                      placeholder="Description"></textarea>
+                        </label>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="reset" class="btn btn-light mt-3">Reset</button>
+                            <button type="submit" class="btn btn-success mt-3">Update Todo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mt-5 mb-0">My Todos</h3>
+        {% if current_user.todo %}
+            <div class="row my-3">
+                {% for todo in current_user.todo %}
+                    <div class="col-md-4">
+                        <div class="bg-white border rounded p-3">
+                            <h5>{{ todo.title }}</h5>
+                            <p style="white-space: pre">{{ todo.description }}</p>
+                            <a class="btn btn-outline-danger ms-auto d-block"
+                               href="{{ url_for('todo.delete', todo_id=todo.id) }}">Delete</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-danger">No Todos Yet! Add New todos</p>
+        {% endif %}
+    </div>
+{% endblock %}
